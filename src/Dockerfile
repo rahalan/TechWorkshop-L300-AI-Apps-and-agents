@@ -1,4 +1,3 @@
-
 FROM python:3.12-slim
 
 # Upgrade pip and system packages to reduce vulnerabilities
@@ -17,12 +16,8 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-
 # Copy the rest of the code
 COPY . .
-
-# Copy .env file into the image (for python-dotenv)
-COPY .env .env
 
 # Expose the port (default FastAPI/uvicorn port)
 EXPOSE 8000
@@ -30,5 +25,5 @@ EXPOSE 8000
 # Set environment variables (override in production)
 ENV PORT=8000
 
-# Start the FastAPI app
-CMD ["uvicorn", "chat_app:app", "--host", "0.0.0.0", "--port", "8000"]
+# Create .env from ENV secret at container start, then run the app
+CMD ["/bin/sh", "-c", "printf \"%s\" \"$ENV\" > /app/.env && exec uvicorn chat_app:app --host 0.0.0.0 --port 8000"]
